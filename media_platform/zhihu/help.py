@@ -130,7 +130,7 @@ class ZhihuExtractor:
         res.content_id = article.get("id")
         res.content_type = article.get("type")
         res.content_text = extract_text_from_html(article.get("content"))
-        res.content_url = f"{zhihu_constant.ZHIHU_URL}/p/{res.content_id}"
+        res.content_url = f"{zhihu_constant.ZHIHU_ZHUANLAN_URL}/p/{res.content_id}"
         res.title = extract_text_from_html(article.get("title"))
         res.desc = extract_text_from_html(article.get("excerpt"))
         res.created_time = article.get("created_time", 0) or article.get("created", 0)
@@ -192,15 +192,21 @@ class ZhihuExtractor:
 
         """
         res = ZhihuCreator()
-        if not author:
-            return res
-        if not author.get("id"):
-            author = author.get("member")
-        res.user_id = author.get("id")
-        res.user_link = f"{zhihu_constant.ZHIHU_URL}/people/{author.get('url_token')}"
-        res.user_nickname = author.get("name")
-        res.user_avatar = author.get("avatar_url")
-        res.url_token = author.get("url_token")
+        try:
+            if not author:
+                return res
+            if not author.get("id"):
+                author = author.get("member")
+            res.user_id = author.get("id")
+            res.user_link = f"{zhihu_constant.ZHIHU_URL}/people/{author.get('url_token')}"
+            res.user_nickname = author.get("name")
+            res.user_avatar = author.get("avatar_url")
+            res.url_token = author.get("url_token")
+            
+        except Exception as e :
+            utils.logger.warning(
+                f"[ZhihuExtractor._extract_content_or_comment_author] User Maybe Blocked. {e}"
+            )
         return res
 
     def extract_comments(self, page_content: ZhihuContent, comments: List[Dict]) -> List[ZhihuComment]:
